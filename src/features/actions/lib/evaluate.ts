@@ -1,5 +1,5 @@
 import type { Contacts, Move, Preview, Route } from '../../../shared/types';
-import { holdAt } from '../../wall';
+import { holdAt } from '../../wall/lib/holds';
 import { balance, isHand, measureReach } from '../../limbs';
 import { moveCost } from '../../stamina';
 

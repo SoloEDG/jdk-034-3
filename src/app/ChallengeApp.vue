@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Activity, ChevronRight, Mountain, Target } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { Activity, ChevronRight, Link2, Mountain, Target } from 'lucide-vue-next';
 import { RouteList, WallBoard } from '../features/wall';
 import { ClimberPose, LimbControls, limbNames } from '../features/limbs';
 import { StaminaGauge } from '../features/stamina';
 import { ActionPanel } from '../features/actions';
 import { AttemptList, AttemptReview } from '../features/records';
 import { useChallenge } from './useChallenge';
+import { TandemView, tandemLevel } from '../features/tandem';
 
 const {
   routeId, shownRoute, shownContacts, selected, shownStates, shownBalance, targetMark, locked,
@@ -17,15 +18,26 @@ const caption = computed(() => active.value ? '历史记录 · 第 ' + (step.val
   : result.value === 'success' ? '完攀 · ' + moves.value.length + ' 步'
     : result.value === 'fall' ? '坠落 · 可从挑战记录回看'
       : limbNames[selected.value] + ' · ' + moves.value.length + ' 步');
+const mode = ref<'solo' | 'tandem'>('solo');
 </script>
 
 <template>
   <header class="masthead">
     <div class="brand"><span class="brand-icon"><Mountain :size="24" /></span><strong>CRUX</strong><span>攀岩路线挑战</span></div>
-    <div class="top-status"><i></i> {{ active ? '历史回看' : result === 'success' ? '已完攀' : result === 'fall' ? '已结束' : '抱石挑战' }}</div>
+    <div class="masthead-tools">
+      <div class="mode-switch" role="group" aria-label="挑战模式">
+        <button :class="{ current: mode === 'solo' }" :aria-pressed="mode === 'solo'" @click="mode = 'solo'">单人抱石</button>
+        <button :class="{ current: mode === 'tandem' }" :aria-pressed="mode === 'tandem'" @click="mode = 'tandem'">
+          <Link2 :size="13" /> 双人连体
+        </button>
+      </div>
+      <div class="top-status"><i></i> {{ mode === 'tandem' ? '连体支援' : active ? '历史回看' : result === 'success' ? '已完攀' : result === 'fall' ? '已结束' : '抱石挑战' }}</div>
+    </div>
   </header>
 
-  <main class="workspace">
+  <TandemView v-if="mode === 'tandem'" :level="tandemLevel" @exit="mode = 'solo'" />
+
+  <main v-else class="workspace">
     <div class="dashboard">
       <RouteList :active="routeId" :reviewing="Boolean(active)" @choose="start" />
       <WallBoard :route="shownRoute" :states="shownStates" :locked="locked" :caption="caption" @choose="chooseHold" @reset="start(routeId)">
